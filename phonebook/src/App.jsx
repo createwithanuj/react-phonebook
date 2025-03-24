@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import UserForm from './UserForm';
+import SearchPerson from './SearchPerson';
+import DisplayContacts from './DisplayContacts';
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -7,7 +10,7 @@ const App = () => {
     { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
     { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }
   ]);
-
+  
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [searchPattern, setSearchPattern] = useState('');
@@ -45,31 +48,18 @@ const App = () => {
   return (
     <>
       <h1>React Phonebook</h1>
-
-      <div>
-        <h2>Filter shown with</h2>
-        <input type="search" value={searchPattern} onChange={handleSearchInput} />
-      </div>
-
-      <form onSubmit={addPhone}>
-        <h2>Add New</h2>
-        <div>
-          name: <input type="text" value={newName} onChange={handleInput1Change} />
-        </div>
-        <div>
-          number: <input type="tel" value={newNumber} onChange={handleInput2Change} />
-        </div>
-        <button type="submit">add</button>
-      </form>
-
-      <h2>Contacts:</h2>
-      <ul>
-        {personsToShow.map(person => (
-          <li key={person.id}>
-            {person.name} {person.number}
-          </li>
-        ))}
-      </ul>
+      <SearchPerson 
+      searchPattern={searchPattern}
+      handleSearchInput={handleSearchInput}
+      />
+      <UserForm 
+      newName={newName} 
+      newNumber={newNumber}
+      handleInput1Change={handleInput1Change}
+      handleInput2Change={handleInput2Change}
+      addPhone = {addPhone}
+      />
+      <DisplayContacts personsToShow = {personsToShow} />
     </>
   );
 };
