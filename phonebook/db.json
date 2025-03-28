@@ -1,14 +1,3 @@
 {
-  "persons": [
-    {
-      "id": "886d",
-      "name": "Arun",
-      "number": "8563694254"
-    },
-    {
-      "id": "f460",
-      "name": "Ankit",
-      "number": "+91236965478"
-    }
-  ]
+  "persons": []
 }
