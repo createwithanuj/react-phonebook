@@ -13,7 +13,7 @@ const App = () => {
     .then(initalContacts => {
       setPersons(initalContacts);
     })
-  })
+  }, [])
 
 
   const [newName, setNewName] = useState('');
