@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import UserForm from './UserForm';
 import SearchPerson from './SearchPerson';
 import DisplayContacts from './DisplayContacts';
-import axios from 'axios';
 import dataService from './services/contacts'
 
 const App = () => {
@@ -28,17 +27,30 @@ const App = () => {
   const addPhone = (e) => {
     e.preventDefault();
 
-    const duplicateName = persons.find(person => person.name === newName);
-    if (duplicateName) {
-      alert(`${newName} is already added to phonebook`);
-      return;
-    }
+    
 
     const newPerson = {
       name: newName,
       number: newNumber,
-      id: persons.length > 0 ? Math.max(...persons.map(p => p.id)) + 1 : 1
     };
+
+    const existingPerson = persons.find(person => person.name === newName);
+    if (existingPerson) {
+
+      const confirmUpdate = confirm(`${newName} is already added to phonebook, replace the old number with a new one`)
+      if(confirmUpdate){
+        const updatedPerson = {...existingPerson, number: newNumber};
+  
+        dataService
+        .updatePhone(existingPerson.id, updatedPerson)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson));
+          setNewName('');
+          setNewNumber('');
+        })
+      }
+      return
+    }
     
     dataService
     .addPhone(newPerson)

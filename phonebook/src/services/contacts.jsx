@@ -16,8 +16,14 @@ const deletePhone = (id) => {
     return request.then(response => response.data);
 }
 
+const updatePhone = (id, updatedPerson) => {
+    const request = axios.put(`${baseUrl}/${id}`, updatedPerson);
+    return request.then(response => response.data);
+}
+
 export default {
     getAll: getAll,
     addPhone: addPhone,
-    deletePhone: deletePhone
+    deletePhone: deletePhone,
+    updatePhone: updatePhone
 }
