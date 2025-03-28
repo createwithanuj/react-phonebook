@@ -3,17 +3,18 @@ import UserForm from './UserForm';
 import SearchPerson from './SearchPerson';
 import DisplayContacts from './DisplayContacts';
 import axios from 'axios';
+import dataService from './services/contacts'
 
 const App = () => {
   const [persons, setPersons] = useState([])
   
-  useEffect(()=>{
-    axios
-    .get('https://bug-free-giggle-95rp7v4vw963xj6x-3001.app.github.dev/persons')
-    .then(response => {
-      setPersons(response.data)
-    });
-  }, []);
+  useEffect(() => {
+    dataService
+    .getAll()
+    .then(initalContacts => {
+      setPersons(initalContacts);
+    })
+  })
 
 
   const [newName, setNewName] = useState('');
@@ -36,13 +37,27 @@ const App = () => {
     const newPerson = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1
+      id: persons.length > 0 ? Math.max(...persons.map(p => p.id)) + 1 : 1
     };
-
-    setPersons(persons.concat(newPerson));
-    setNewName('');
-    setNewNumber('');
+    
+    dataService
+    .addPhone(newPerson)
+    .then(returnedPerson => {
+      setPersons(persons.concat(returnedPerson));
+      setNewName('');
+     setNewNumber('');
+    })
+    
   };
+
+
+  const handleDelete = (id, name) => {
+    if(window.confirm(`Delete ${name} ?`)){
+      dataService
+      .deletePhone(id)
+      .then(() => setPersons(persons.filter(person => person.id != id)));
+    }
+  }
 
   
   const personsToShow = searchPattern
@@ -65,7 +80,7 @@ const App = () => {
       handleInput2Change={handleInput2Change}
       addPhone = {addPhone}
       />
-      <DisplayContacts personsToShow = {personsToShow} />
+      <DisplayContacts personsToShow = {personsToShow} handleDelete={handleDelete}/>
     </>
   );
 };
