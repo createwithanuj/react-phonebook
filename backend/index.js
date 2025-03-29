@@ -2,10 +2,12 @@ const express = require('express')
 
 const app = express();
 
-const contacts = [
+app.use(express.json());
+
+let persons = [
     { 
       "id": "1",
-      "name": "Arto Hellas", 
+      "name": "Arto Hellas",
       "number": "040-123456"
     },
     { 
@@ -25,11 +27,71 @@ const contacts = [
     }
 ]
 
-app.get('/api/contacts', (request, response)=>{
-    response.json(contacts)
+app.get('/api/persons', (request, response)=>{
+    response.json(persons)
+});
+
+app.get('/api/info', (request, response)=>{
+    response.send(`
+        <p>Phonebook has info for ${persons.length} people</p>
+        <p>${new Date()}</p>
+    `)
+});
+
+app.get('/api/persons/:id', (request, response) => {
+  const id = request.params.id;
+  const person = persons.find(person => person.id === id);
+
+  if (person) {
+    response.json(person);
+  } else {
+    response.status(404).json({ error: 'Person not found' });
+  }
+});
+
+app.delete('/api/persons/:id', (request, response) => {
+  const id = request.params.id;
+
+  const personExists = persons.some(person => person.id === id);
+
+  if (personExists) {
+    persons = persons.filter(person => person.id !== id);
+    console.log(`Deleted person with id ${id}`);
+    response.status(204).end();
+  } else {
+    response.status(404).send({ error: 'Person not found' });
+  }
+});
+
+app.post('/api/persons', (request, response) => {
+  const person = request.body;
+  response.json(person);
+
+  if (!person.name || !person.number) {
+    return response.status(400).json({
+      error: 'name or number missing'
+    });
+  }
+  if (persons.find(p => p.name === person.name)) {
+    return response.status(400).json({
+      error: 'name must be unique'
+    });
+  }
+  if (persons.find(p => p.number === person.number)) {
+    return response.status(400).json({
+      error: 'number must be unique'
+    });
+  }
+  const newPerson = {
+    id: (Math.random() * 1000).toString(),
+    name: person.name,
+    number: person.number
+  };
+  persons = persons.concat(newPerson);
+  response.json(newPerson);
 });
 
 const PORT = 3001;
-app.listen(PORT, ()=> {
+app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
-})
+});
