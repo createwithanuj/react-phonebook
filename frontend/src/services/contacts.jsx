@@ -1,5 +1,5 @@
 import axios from "axios";
-const baseUrl = 'https://bug-free-giggle-95rp7v4vw963xj6x-3001.app.github.dev/api/persons';
+const baseUrl = '/api/persons';
 
 const getAll = () => {
     const request = axios.get(baseUrl)
