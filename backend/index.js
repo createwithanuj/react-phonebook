@@ -91,12 +91,37 @@ app.post('/api/persons', (request, response) => {
   });
   }
   const newPerson = {
-  id: (Math.random() * 1000).toString(),
+  id: String(Math.round(Math.random() * 1000).toString()),
   name: person.name,
   number: person.number
   };
   persons = persons.concat(newPerson);
   response.json(newPerson);
+});
+
+app.put('/api/persons/:id', (request, response) => {
+  const id = request.params.id;
+  const person = request.body;
+
+  if (!person.name || !person.number) {
+    return response.status(400).json({
+      error: 'name or number missing'
+    });
+  }
+
+  const existingPersonIndex = persons.findIndex(p => p.id === id);
+
+  if (existingPersonIndex !== -1) {
+    const updatedPerson = { ...persons[existingPersonIndex], ...person };
+    persons[existingPersonIndex] = updatedPerson;
+    response.json(updatedPerson);
+  } else {
+    response.status(404).json({ error: 'Person not found' });
+  }
+}
+);
+app.use((request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' });
 });
 
 const PORT = 3001;
