@@ -1,6 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const Person = require('./models/contact');
+
 
 const app = express();
 app.use(cors());
@@ -13,94 +16,53 @@ morgan.token('body', (req) => JSON.stringify(req.body));
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
-let persons = [
-  { 
-    "id": "1",
-    "name": "Arto Hellas",
-    "number": "040-123456"
-  },
-  { 
-    "id": "2",
-    "name": "Ada Lovelace", 
-    "number": "39-44-5323523"
-  },
-  { 
-    "id": "3",
-    "name": "Dan Abramov", 
-    "number": "12-43-234345"
-  },
-  { 
-    "id": "4",
-    "name": "Mary Poppendieck", 
-    "number": "39-23-6423122"
-  }
-];
-
+  
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  
+  Person.find({}).then(persons => {
+    response.json(persons);
+  });
 });
 
-app.get('/api/info', (request, response) => {
-  response.send(`
-    <p>Phonebook has info for ${persons.length} people</p>
-    <p>${new Date()}</p>
-  `);
+app.get('/info', (request, response) => {
+  Person.countDocuments({}).then(count => {
+    const date = new Date();
+    const info = `<p>Phonebook has info for ${count} people</p>
+    <p>${date}</p>`;
+    response.send(info);
+  }).catch(error => {
+    response.status(500).send({ error: 'Failed to retrieve information' });
+  });
 });
 
 app.get('/api/persons/:id', (request, response) => {
   const id = request.params.id;
-  const person = persons.find(person => person.id === id);
 
-  if (person) {
-  response.json(person);
-  } else {
-  response.status(404).json({ error: 'Person not found' });
-  }
+  Person.findById(id).then(person => {
+    if (person) {
+      response.json(person);
+    } else {
+      response.status(404).send({ error: 'Person not found' });
+    }
+  }).catch(error => {
+    response.status(500).send({ error: 'Failed to retrieve person' });
+  });
 });
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id;
-
-  const personExists = persons.some(person => person.id === id);
-
-  if (personExists) {
-  persons = persons.filter(person => person.id !== id);
-  console.log(`Deleted person with id ${id}`);
-  response.status(204).end();
-  } else {
-  response.status(404).send({ error: 'Person not found' });
-  }
+  Person.findByIdAndDelete(id).then(result => {
+    if (result) {
+      response.status(204).end();
+    } else {
+      response.status(404).send({ error: 'Person not found' });
+    }
+  }).catch(error => {
+    response.status(500).send({ error: 'Failed to delete person' });
+  });
 });
 
 app.post('/api/persons', (request, response) => {
-  const person = request.body;
-
-  if (!person.name || !person.number) {
-  return response.status(400).json({
-    error: 'name or number missing'
-  });
-  }
-  if (persons.find(p => p.name === person.name)) {
-  return response.status(400).json({
-    error: 'name must be unique'
-  });
-  }
-  if (persons.find(p => p.number === person.number)) {
-  return response.status(400).json({
-    error: 'number must be unique'
-  });
-  }
-  const newPerson = {
-  id: String(Math.round(Math.random() * 1000).toString()),
-  name: person.name,
-  number: person.number
-  };
-  persons = persons.concat(newPerson);
-  response.json(newPerson);
-});
-
-app.put('/api/persons/:id', (request, response) => {
-  const id = request.params.id;
   const person = request.body;
 
   if (!person.name || !person.number) {
@@ -108,18 +70,47 @@ app.put('/api/persons/:id', (request, response) => {
       error: 'name or number missing'
     });
   }
+  const newPerson = new Person({
+    name: person.name,
+    number: person.number,
+  });
+  newPerson.save().then(savedPerson => {
+    response.json(savedPerson);
+  }).catch(error => {
+    response.status(400).json({ error: 'Failed to save person' });
+  });
+});
 
-  const existingPersonIndex = persons.findIndex(p => p.id === id);
 
-  if (existingPersonIndex !== -1) {
-    const updatedPerson = { ...persons[existingPersonIndex], ...person };
-    persons[existingPersonIndex] = updatedPerson;
-    response.json(updatedPerson);
-  } else {
-    response.status(404).json({ error: 'Person not found' });
+app.put('/api/persons/:id', (request, response) => {
+  const id = request.params.id;
+  const updatedPerson = request.body;
+
+  if (!updatedPerson.name || !updatedPerson.number) {
+    return response.status(400).json({
+      error: 'name or number missing'
+    });
   }
+
+  Person.findByIdAndUpdate(
+    id, 
+    { number: updatedPerson.number }, 
+    { new: true, runValidators: true, context: 'query' }
+  )
+    .then(updated => {
+      if (updated) {
+        response.json(updated);
+      } else {
+        response.status(404).send({ error: 'Person not found' });
+      }
+    })
+    .catch(error => {
+      response.status(400).json({ error: error.message });
+    });
 }
 );
+
+
 app.use((request, response) => {
   response.status(404).send({ error: 'unknown endpoint' });
 });
