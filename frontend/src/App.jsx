@@ -78,6 +78,16 @@ const App = () => {
      showNotification(`Added ${newPerson.name}`, "success");
     })
     .catch(error => {
+    console.log(error.response.data);
+    if (error.response.status === 400) {
+      showNotification(error.response.data.error, "error");
+    }
+    else if (error.response.status === 500) {
+      showNotification("Server error. Please try again later.", "error");
+    }
+    else {
+      showNotification("An unexpected error occurred. Please try again.", "error");
+    }
     showNotification("Error adding contact. Please try again.", "error");
   });
     
@@ -93,7 +103,38 @@ const App = () => {
         showNotification(`Deleted ${name}`, "success");
 
     }) 
-      .catch(error => {showNotification("Error deleting contact. Please try again.")});
+      .catch(error => {
+        showNotification("Error deleting contact. Please try again.", "error");
+        if (error.response.status === 404) {
+          showNotification(`Information of ${name} has already been removed from server`, "error");
+          setPersons(persons.filter(person => person.id != id));
+        }
+        else if (error.response.status === 500) {
+          showNotification("Server error. Please try again later.", "error");
+        }
+        else {
+          showNotification("An unexpected error occurred. Please try again.", "error");
+        }
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+      console.log(error.request);
+      console.log(error.message);
+      console.log(error.config);
+      console.log(error);
+      console.log(error.toJSON());
+      console.log(error.toString());
+      console.log(error.stack);
+      console.log(error.name);
+      console.log(error.code);
+      console.log(error.request.status);
+      console.log(error.request.statusText);
+      console.log(error.request.response);
+      console.log(error.request.responseText);
+      console.log(error.request.responseType);
+      console.log(error.request.responseURL); 
+      }
+      );  
     }
   }
 
