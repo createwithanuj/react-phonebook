@@ -9,7 +9,7 @@ Check out the live application here:
 ### 🛠️ Technologies Used  
 - Frontend: React, Axios  
 - Backend: Node.js, Express  
-- Database: JSON Server (or any configured database)  
+- Database: MongoDB
 - Hosting: Render  
 
 ### 📂 Features  
